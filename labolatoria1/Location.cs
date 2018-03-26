@@ -9,13 +9,14 @@ namespace ConsoleApp2
     class Location
     {
         private List<NPC> npcList;
-
+        public bool IsUnlocked { get; set;}
         public String Name { get; }
         public List<NPC> NpcList { get { return npcList; } }
 
-        public Location(String name)
+        public Location(String name,bool unlocked)
         {
             this.Name = name;
+            this.IsUnlocked = unlocked;
             npcList = new List<NPC>
             {
                 new NPC("Zbyszko z " + name, BuildDialogue1()),

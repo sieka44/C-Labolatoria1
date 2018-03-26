@@ -1,11 +1,21 @@
 ﻿using ConsoleApp2;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 public class Program
 {
     private static DialogParser parser;
+    private static List<Location> locationList = new List<Location>
+    {
+        new Location("Rivendell",true),
+        new Location("EMordor",true),
+        new Location("DHelm's Deep",true),
+        new Location("CMinas Tirith",true),
+        new Location("BMinas Morgul",false),
+        new Location("AMines Of Moria",false)
+    };
 
     private static void StartGame()
     {
@@ -28,7 +38,12 @@ public class Program
                 break;
             }
         } while (clicked.Key != ConsoleKey.X);
-        LocationScreen(hero, new Location("Rivendel"));
+        Location currLocation = locationList.Find(x => x.Name=="Rivendell");
+        while (currLocation!=null)
+        {
+            currLocation = LocationScreen(hero, currLocation);
+        }
+
     }
 
     private static Hero CreateHero()
@@ -70,12 +85,12 @@ public class Program
         return hero;
     }
 
-    private static void LocationScreen(Hero hero, Location location)
+    private static Location LocationScreen(Hero hero, Location location)
     {
         if (hero == null || location == null)
         {
             Console.Write("FATAL ERROR");
-            return;
+            return null;
         } 
         
         ConsoleKeyInfo clicked;
@@ -88,6 +103,7 @@ public class Program
             {
                 Console.WriteLine("Kliknij [" + i + "] aby porozmawiać z " + npcList[i].Name.ToString());
             }
+            Console.WriteLine("Kliknij [T] aby podróżować");
             Console.WriteLine("Kliknij [X] aby wyjść");
             clicked = Console.ReadKey();
             if (clicked.Key == ConsoleKey.D0)
@@ -98,7 +114,26 @@ public class Program
             {
                 PerformTalk(npcList[1]);
             }
+            else if (clicked.Key == ConsoleKey.T)
+            {
+                Console.Clear();
+                Console.WriteLine("Gdzie chcesz podróżować?");
+                List<String> tmpList = locationList.Where(x => x.IsUnlocked && x != location).Select(a => a.Name).OrderBy(a => a).ToList();
+                for(int i = 0; i < tmpList.Count; i++)
+                {
+                    Console.WriteLine("["+i+"]"+tmpList[i]);
+                }
+                Console.WriteLine("Wybierz nr lokalizacji:");
+                ConsoleKeyInfo keyPressed;
+                int index = 0;
+                do
+                {
+                    keyPressed = Console.ReadKey();
+                } while (!Int32.TryParse(keyPressed.KeyChar.ToString(), out index) || index>=tmpList.Count);
+                return locationList.Find(x => x.Name == tmpList[index]);
+            }
         } while (clicked.Key != ConsoleKey.X);
+        return null;
     }
 
     private static void PerformTalk(NPC npc)
@@ -138,6 +173,7 @@ public class Program
                 break;
             }
         }
+        locationList.Find(x => x.Name == "AMines Of Moria").IsUnlocked=true;
         Console.WriteLine("<Koniec>. Kliknij aby wrócić do ekranu lokacji...");
         Console.ReadKey();
     }
